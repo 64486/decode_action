@@ -1,58 +1,136 @@
-#2024-10-13 12:09:35
+#2024-10-13 12:33:45
 import requests
-import os
 import time
 import random
-import hashlib
-class yuanshen():
+import uuid
+import os
+class yuanshen:
  def __init__(self,cookie):
-  self.cookie=cookie
-  self.h={"Host":"app.zhuanbang.net","accept":"application/json, image/webp","user-agent":"Mozilla/5.0 (Linux; Android 12; M2104K10AC Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/96.0.4664.104 Mobile Safari/537.36 HuoNiuFusion/1.25.0_231652","x-requested-with":"XMLHttpRequest","sec-fetch-site":"same-origin","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"https://app.zhuanbang.net/assist/activity/47","accept-language":"zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7","accept-encoding":"gzip","Cookie":f"NiuToken={self.cookie}"}
- def sign_(self):
-  d=f"{self.csrftoken}#{self.sessionId}#{self.time}"
-  byte_string=d.encode('utf-8')
-  sha1=hashlib.sha1()
-  sha1.update(byte_string)
-  sign=sha1.hexdigest()
-  return sign
- def video(self,key):
-  i=0
-  while True:
-   i+=1
-   url=f"https://app.zhuanbang.net/{key}/launch?_random={int(time.time() * 1000)}&type=slide"
-   r=requests.get(url,headers=self.h).json()
-   if r['code']==0:
-    print(f"第[{i}]个红包获取信息成功")
-    self.csrftoken=r['data']['extArgs']['csrfToken']
-    self.sessionId=r['data']['extArgs']['sessionId']
-    self.time=int(time.time())
-    url=f"https://app.zhuanbang.net/{key}/award/grant?_t={self.time}"
-    data={"csrfToken":f"{self.csrftoken}","deviceId":f"{self.sessionId}","timestamp":f"{self.time}","sign":f"{self.sign_()}"}
-    r=requests.post(url,headers=self.h,data=data).json()
-    if r['code']==0:
-     print(f"第[{i}]个红包领取成功,获得[{r['data']['awardMoney']}]元")
-    else:
-     print(f"第[{i}]个红包领取失败---[{r['msg']}]")
-     break
+  self.cookie=cookie.split('#')[0]
+  self.devtoken=cookie.split('#')[1]
+  self.oaid=cookie.split('#')[2]
+  self.deviceid=cookie.split('#')[3]
+  self.headers={"Host":"speciesweb.whjzjx.cn","x-app-id":"7","authorization":f"{self.cookie}","platform":"1","manufacturer":"Xiaomi","version_name":"2.8.6.1","user_agent":"Mozilla/5.0 (Linux; Android 14; 23113RKC6C Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/118.0.0.0 Mobile Safari/537.36","dev_token":f"{self.devtoken}","app_version":"2.8.6.1","device_platform":"android","personalized_recommend_status":"1","device_type":"23113RKC6C","device_brand":"Redmi","os_version":"14","channel":"default","raw_channel":"default","oaid":f"{self.oaid}","msa_oaid":f"{self.oaid}","uuid":"randomUUID_c3a0b1e8-312b-4313-bb6d-cf958cb449fa","device_id":f"{self.deviceid}","ab_id":"","content-length":"0","accept-encoding":"gzip","user-agent":"okhttp/4.10.0"}
+  self.post_header={"Host":"speciesweb.whjzjx.cn","pragma":"no-cache","cache-control":"no-cache","sec-ch-ua":"Chromium;v=118, Android","app_version":"2.8.6.1","os_version":"14","authorization":f"{self.cookie}","raw_channel":"default","device_brand":"Redmi","channel":"default","user_agent":"Mozilla/5.0 (Linux; Android 14; 23113RKC6C Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/118.0.0.0 Mobile Safari/537.36 _dsbridge","sec-ch-ua-platform":"Android","device_id":f"{self.deviceid}","sec-ch-ua-mobile":"?1","user-agent":"Mozilla/5.0 (Linux; Android 14; 23113RKC6C Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/118.0.0.0 Mobile Safari/537.36 _dsbridge","content-type":"application/json","accept":"application/json, text/plain, */*","device_type":"23113RKC6C","dev_token":f"{self.devtoken}","device_platform":"android","origin":"https://h5static.xingya.com.cn","x-requested-with":"com.jz.xydj","sec-fetch-site":"cross-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","accept-encoding":"gzip, deflate, br","accept-language":"zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"}
+ def ex_header(self):
+  uuid_str=str(uuid.uuid4())
+  self.headers['uuid']="randomUUID_"+uuid_str
+ def sign(self):
+  self.ex_header()
+  url="https://speciesweb.whjzjx.cn/v1/sign/pop-do"
+  r=requests.post(url,headers=self.headers).json()
+  if r['code']=="ok":
+   print(f"💰️签到成功,获得金币:[{r['data']['coin_val']}]")
+  else:
+   print(f"❌️签到失败,原因:[{r}]")
+  time.sleep(3)
+  url="https://speciesweb.whjzjx.cn/v1/sign/report"
+  data={"type":3}
+  r=requests.post(url,headers=self.headers,json=data).json()
+  if r['code']=="ok":
+   print(f"签到上报成功")
+  else:
+   print(f"❌️签到上报失败,原因:[{r}]")
+ def video(self):
+  url="https://speciesweb.whjzjx.cn/v1/sign/incentive_video_task"
+  data={"cpm":0}
+  r=requests.post(url,headers=self.post_header,json=data).json()
+  if r['code']=="ok":
+   print(f"💰️观看视频成功,获得金币:[{r['data']['task_coin']}]")
+  else:
+   print(f"❌️观看视频失败,原因:[{r}]")
+  time.sleep(random.randint(15,30))
+  url="https://speciesweb.whjzjx.cn/v1/task_ad/claim"
+  data={"ad_type":2}
+  r=requests.post(url,headers=self.post_header,json=data).json()
+  if r['code']=="ok":
+   print(f"💰️领取视频额外奖励成功,获得金币:[{r['data']['coin_val']}]")
+  else:
+   print(f"❌️领取视频额外奖励失败,原因:[{r}]")
+ def box(self):
+  url="https://speciesweb.whjzjx.cn/v1/box/info"
+  r=requests.get(url,headers=self.post_header).json()
+  cid=r['data']['config_id']
+  if not r['data']['open']:
+   print(f"❌️宝箱冷却ing... 下一个宝箱时间:[{r['data']['remain_secs']}]")
+   time.sleep(r['data']['remain_secs'])
+   time.sleep(random.randint(15,30))
+  if not r['data']['show']:
+   return
+  url="https://speciesweb.whjzjx.cn/v1/box/open"
+  data={"config_id":cid,"cpm":0}
+  r=requests.post(url,headers=self.post_header,json=data).json()
+  if r['code']=="ok":
+   coin_val=r['data']['coin_val']
+   print(f"💰️打开宝箱成功,获得金币:[{r['data']['coin_val']}]")
+  else:
+   print(f"❌️打开宝箱失败,原因:[{r}]")
+  time.sleep(random.randint(15,30))
+  url="https://speciesweb.whjzjx.cn/v1/box/view_ad"
+  data={"config_id":cid,"coin_val":coin_val,"ad_num":1}
+  r=requests.post(url,headers=self.post_header,json=data).json()
+  if r['code']=="ok":
+   print(f"💰️宝箱视频一追领取成功,获得金币:[{r['data']['coin_val']}]")
+  else:
+   print(f"❌️宝箱视频一追领取失败,原因:[{r}]")
+  time.sleep(random.randint(15,30))
+  data={"config_id":cid,"coin_val":coin_val,"ad_num":2}
+  r=requests.post(url,headers=self.post_header,json=data).json()
+  if r['code']=="ok":
+   print(f"💰️宝箱视频二追领取成功,获得金币:[{r['data']['coin_val']}]")
+  else:
+   print(f"❌️宝箱视频二追领取失败,原因:[{r}]")
+ def red_rain(self):
+  url="https://speciesweb.whjzjx.cn/v1/task/red_rain"
+  self.ex_header()
+  r=requests.get(url,headers=self.headers).json()
+  if r['code']=="ok":
+   url="https://speciesweb.whjzjx.cn/v1/task/red_rain_prize"
+   data={"clicked_red_package_num":r['data']['red_count']}
+   r=requests.post(url,headers=self.post_header,json=data).json()
+   if r['code']=="ok":
+    print(f"🧧领取红包雨奖励成功,获得金币:[{r['data']['coin_val']}]")
    else:
-    print(f"第[{i}]个获取红包信息失败---[{r['msg']}]")
-    break
-   if i>=21:
-    break
-   time.sleep(random.randint(20,48))
+    print(f"❌️领取红包雨奖励失败,原因:[{r}]")
+   time.sleep(random.randint(15,30))
+   url="https://speciesweb.whjzjx.cn/v1/task_ad/claim"
+   data={"ad_type":8}
+   r=requests.post(url,headers=self.post_header,json=data).json()
+   if r['code']=="ok":
+    print(f"💰️领取红包雨额外奖励成功,获得金币:[{r['data']['coin_val']}]")
+   else:
+    print(f"❌️领取红包雨额外奖励失败,原因:[{r}]")
+ def user_info(self):
+  url=f"https://speciesweb.whjzjx.cn/v1/sign/info?device_id={self.deviceid}"
+  r=requests.get(url,headers=self.post_header).json()
+  if r['code']=="ok":
+   print(f"💰️当前剩余金币:[{r['data']['species']}]")
+   print(f"🎁️当前剩余余额:[{r['data']['cash_remain']}]")
+  else:
+   print(f"❌️获取用户信息失败,原因:[{r}]")
  def main(self):
-  print("===========开始执行快手刷视频===========")
-  self.video("kwai_video")
-  print("===========快手刷视频执行完毕===========")
-  print("===========开始执行抖音刷视频===========")
-  self.video("pangle_video")
-  print("===========抖音刷视频执行完毕===========")
+  self.sign()
+  i=0
+  print("======================")
+  while True:
+   self.video()
+   print("======================")
+   time.sleep(random.randint(15,30))
+   self.box()
+   print("======================")
+   i+=1
+   if i==10:
+    break
+  print("======================")
+  self.red_rain()
+  print("======================")
+  self.user_info()
 if __name__=='__main__':
  cookie=''
  if not cookie:
-  cookie=os.getenv("yuanshen_zb")
+  cookie=os.getenv("yuanshen_xydj")
   if not cookie:
-   print("⛔️请设置环境变量:yuanshen_zb")
+   print("请设置环境变量:yuanshen_xydj")
    exit()
  cookies=cookie.split("@")
  print(f"一共获取到{len(cookies)}个账号")
